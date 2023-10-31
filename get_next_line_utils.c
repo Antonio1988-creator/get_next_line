@@ -5,12 +5,39 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: anguil-l <anguil-l@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/09 16:35:07 by anguil-l          #+#    #+#             */
-/*   Updated: 2023/10/25 10:56:50 by anguil-l         ###   ########.fr       */
+/*   Created: 2023/10/31 19:31:39 by anguil-l          #+#    #+#             */
+/*   Updated: 2023/10/31 19:32:07 by anguil-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+
+char	*ft_strjoin(char *s1, char *s2)
+{
+	char	*str;
+	size_t	i;
+	size_t	c;
+
+	if (!s1)
+	{
+		s1 = malloc(sizeof(char) + 1);
+		if (!s1)
+			return (0);
+		s1[0] = 0;
+	}
+	str = (char *)malloc(sizeof(char) * ft_strlen(s1) + ft_strlen(s2) + 1);
+	if (!str)
+		return (ft_free(&s1));
+	i = -1;
+	while (s1[++i])
+		str[i] = s1[i];
+	c = -1;
+	while (s2[++c])
+		str[i + c] = s2[c];
+	str[i + c] = '\0';
+	free(s1);
+	return (str);
+}
 
 size_t	ft_strlen(char *s)
 {
@@ -29,97 +56,40 @@ char	*ft_strchr(char *s, int c)
 	int	i;
 
 	i = 0;
-	if (!s)
-		return (0);
-	if (c == '\0')
-		return ((char *)&s[ft_strlen(s)]);
 	while (s[i] != '\0')
 	{
-		if (s[i] == (char) c)
-			return ((char *)&s[i]);
+		if (s[i] == (char)c)
+			return (&((char *)s)[i]);
 		i++;
 	}
+	if ((char)c == '\0')
+		return (&((char *)s)[i]);
 	return (0);
 }
 
-char	*ft_strjoin(char *left_str, char *buff)
+char	*ft_substr(char *s, unsigned int start, size_t len)
 {
 	size_t	i;
-	size_t	j;
-	char	*str;
-
-	if (!left_str)
-	{
-		left_str = (char *)malloc(1 * sizeof(char));
-		left_str[0] = '\0';
-	}
-	if (!left_str || !buff)
-		return (NULL);
-	str = malloc(sizeof(char) * ((ft_strlen(left_str) + ft_strlen(buff)) + 1));
-	if (str == NULL)
-		return (NULL);
-	i = -1;
-	j = 0;
-	if (left_str)
-		while (left_str[++i] != '\0')
-			str[i] = left_str[i];
-	while (buff[j] != '\0')
-		str[i++] = buff[j++];
-	str[ft_strlen(left_str) + ft_strlen(buff)] = '\0';
-	free(left_str);
-	return (str);
-}
-
-char	*ft_get_line(char *left_str)
-{
-	int		i;
-	char	*str;
+	char	*res;
 
 	i = 0;
-	if (!left_str[i])
-		return (NULL);
-	while (left_str[i] && left_str[i] != '\n')
-		i++;
-	str = (char *)malloc(sizeof(char) * (i + 2));
-	if (!str)
-		return (NULL);
-	i = 0;
-	while (left_str[i] && left_str[i] != '\n')
+	if (!s)
+		return (0);
+	if (start > ft_strlen(s))
 	{
-		str[i] = left_str[i];
-		i++;
+		res = malloc(sizeof(char) * (1));
+		if (!res)
+			return (NULL);
+		res[0] = '\0';
+		return (res);
 	}
-	if (left_str[i] == '\n')
-	{
-		str[i] = left_str[i];
-		i++;
-	}
-	str[i] = '\0';
-	return (str);
-}
-
-char	*ft_new_left_str(char *left_str)
-{
-	int		i;
-	int		j;
-	char	*str;
-
-	i = 0;
-	while (left_str[i] && left_str[i] != '\n')
-		i++;
-	if (!left_str[i])
-	{
-		free(left_str);
+	if (ft_strlen(s) - start < len)
+		len = ft_strlen(s) - start;
+	res = malloc(sizeof(char) * (len + 1));
+	if (!res)
 		return (NULL);
-	}
-	str = (char *)malloc(sizeof(char) * (ft_strlen(left_str) - i + 1));
-	if (!str)
-		return (NULL);
-	i++;
-	j = 0;
-	while (left_str[i])
-		str[j++] = left_str[i++];
-	str[j] = '\0';
-	free(left_str);
-	return (str);
+	while (start < ft_strlen(s) && i < len && s[start])
+		res[i++] = s[start++];
+	res[i] = '\0';
+	return (res);
 }

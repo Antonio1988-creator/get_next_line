@@ -5,49 +5,96 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: anguil-l <anguil-l@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/10 17:34:56 by anguil-l          #+#    #+#             */
-/*   Updated: 2023/10/10 17:35:00 by anguil-l         ###   ########.fr       */
+/*   Created: 2023/10/31 19:29:40 by anguil-l          #+#    #+#             */
+/*   Updated: 2023/10/31 19:30:04 by anguil-l         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <unistd.h>
 
-char	*ft_read_to_left_str(int fd, char *left_str)
+char	*ft_free(char **str)
 {
-	char	*buff;
-	int		rd_bytes;
+	free(*str);
+	*str = NULL;
+	return (NULL);
+}
 
-	buff = malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (!buff)
-		return (NULL);
-	rd_bytes = 1;
-	while (!ft_strchr(left_str, '\n') && rd_bytes != 0)
+char	*clean_storage(char *storage)
+{
+	char	*new_storage;
+	char	*ptr;
+	int		len;
+
+	ptr = ft_strchr(storage, '\n');
+	if (!ptr)
 	{
-		rd_bytes = read(fd, buff, BUFFER_SIZE);
-		if (rd_bytes == -1)
-		{
-			free(buff);
-			return (NULL);
-		}
-		buff[rd_bytes] = '\0';
-		left_str = ft_strjoin(left_str, buff);
+		new_storage = NULL;
+		return (ft_free(&storage));
 	}
-	free(buff);
-	return (left_str);
+	else
+		len = (ptr - storage) + 1;
+	if (!storage[len])
+		return (ft_free(&storage));
+	new_storage = ft_substr(storage, len, ft_strlen(storage) - len);
+	ft_free(&storage);
+	if (!new_storage)
+		return (NULL);
+	return (new_storage);
+}
+
+char	*new_line(char *storage)
+{
+	char	*line;
+	char	*ptr;
+	int		len;
+
+	ptr = ft_strchr(storage, '\n');
+	len = (ptr - storage) + 1;
+	line = ft_substr(storage, 0, len);
+	if (!line)
+		return (NULL);
+	return (line);
+}
+
+char	*readbuf(int fd, char *storage)
+{
+	int		rid;
+	char	*buffer;
+
+	rid = 1;
+	buffer = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buffer)
+		return (ft_free(&storage));
+	buffer[0] = '\0';
+	while (rid > 0 && !ft_strchr(buffer, '\n'))
+	{
+		rid = read (fd, buffer, BUFFER_SIZE);
+		if (rid > 0)
+		{
+			buffer[rid] = '\0';
+			storage = ft_strjoin(storage, buffer);
+		}
+	}
+	free(buffer);
+	if (rid == -1)
+		return (ft_free(&storage));
+	return (storage);
 }
 
 char	*get_next_line(int fd)
 {
+	static char	*storage = {0};
 	char		*line;
-	static char	*left_str;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (0);
-	left_str = ft_read_to_left_str(fd, left_str);
-	if (!left_str)
+	if (fd < 0)
 		return (NULL);
-	line = ft_get_line(left_str);
-	left_str = ft_new_left_str(left_str);
+	if ((storage && !ft_strchr(storage, '\n')) || !storage)
+		storage = readbuf (fd, storage);
+	if (!storage)
+		return (NULL);
+	line = new_line(storage);
+	if (!line)
+		return (ft_free(&storage));
+	storage = clean_storage(storage);
 	return (line);
 }
